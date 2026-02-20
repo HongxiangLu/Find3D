@@ -1,0 +1,8 @@
+# Python 缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+# 存放数据
+dataroot/
+# 脚本运行日志
+render_exceptions.txt

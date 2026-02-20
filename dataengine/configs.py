@@ -1,6 +1,6 @@
 # path constants
 # please download SAM checkpoint and filtered uid json from Wonder3d following README.md and fill in the below
-DATA_ROOT = ""
+DATA_ROOT = "/home/hxlu/Find3D-new/dataroot"
 WONDER3D_UIDS_PATH = ""
 SAM_CHECKPOINT_PATH = ""
 

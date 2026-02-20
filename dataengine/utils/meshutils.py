@@ -4,7 +4,7 @@ from pytorch3d.structures import Meshes, join_meshes_as_scene
 from pytorch3d.renderer.mesh.textures import TexturesUV
 from pytorch3d.io import IO
 from pytorch3d.ops.sample_points_from_meshes import sample_points_from_meshes
-from rendering.utils import get_phong_renderer
+from dataengine.rendering.utils import get_phong_renderer
 import matplotlib.pyplot as plt
 import open3d as o3d
 
@@ -13,7 +13,7 @@ def normalize_mesh(mesh):
     center = verts.mean(0)
     scale = max((verts - center).abs().max(0)[0])
     mesh.offset_verts_(-center)
-    mesh.scale_verts_((0.75 / float(scale))) # put in 0.75-size box
+    mesh.scale_verts_((1 / float(scale))) # put in 0.75-size box
     return
 
 
