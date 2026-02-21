@@ -43,11 +43,11 @@ object_uid_2,table
 
 由于路径问题，运行脚本前需要先设置路径：`export PYTHONPATH=$PYTHONPATH:.`
 
-## 新增点云预处理工具
+### 新增点云预处理工具
 
 我们所用的点云为没有网格的PLY文件。[`convert_pcd_to_mesh_color.py`](convert_pcd_to_mesh_color.py)将原始的 PLY 点云文件批量转换为带有三角面片的 PLY 网格文件（Triangular Mesh），以适配后续的 PyTorch3D 渲染流程。
 
-## 渲染脚本适配（[`dataengine/rendering/render_2d.py`](dataengine/rendering/render_2d.py)）
+### 渲染脚本适配（[`dataengine/rendering/render_2d.py`](dataengine/rendering/render_2d.py)）
 
 1. **PLY 文件加载**: 原先脚本只支持处理 GLB 文件。为此，我们新增了 `ply_to_py3d` 函数。脚本自动根据文件后缀（`.ply` 或 `.glb`）选择对应的加载函数。
 
@@ -55,7 +55,7 @@ object_uid_2,table
 
 3. **工具库修正**：修正了[`dataengine/utils/meshutils.py`](dataengine/utils/meshutils.py)的模块导入错误路径（`from rendering.utils`）。
 
-## 物体朝向判断脚本（[`dataengine/llm/query_orientation.py`](dataengine/llm/query_orientation.py)）
+### 物体朝向判断脚本（[`dataengine/llm/query_orientation.py`](dataengine/llm/query_orientation.py)）
 
 1. 模型从Gemini迁移至通义千问系列，调用OpenAI兼容接口（Python openai包）。使用前需要通过环境变量配置API Key：`export DASHSCOPE_API_KEY="sk-你的key"`
 
