@@ -21,3 +21,4 @@ env/
 .DS_Store
 # 脚本运行日志
 render_exceptions.txt
+orientation_exceptions*.txt

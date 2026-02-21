@@ -23,18 +23,18 @@ DATA_ROOT/
 其中`obj1lvis/metadata.csv`和`labeled/chunk_ids/chunk0.csv`都提供了每个对象的类别（class）信息，如下所示：
 
 ```
-        uid,class
-        object_uid_1,chair
-        object_uid_2,table
+uid,class
+object_uid_1,chair
+object_uid_2,table
 ```
 
 而`labeled/glbs/object-paths.json.gz`是一个压缩的 JSON 文件，记录每个 `uid` 对应的模型文件相对路径（相对于`labeled/glbs/`），如下所示：
 
 ```
-        {
-            "object_uid_1": "chair/model_1.glb",
-            "object_uid_2": "table/model_2.ply"
-        }
+{
+    "object_uid_1": "chair/model_1.glb",
+    "object_uid_2": "table/model_2.ply"
+}
 ```
 
 # 修改内容
