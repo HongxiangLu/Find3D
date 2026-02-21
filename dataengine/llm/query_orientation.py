@@ -47,7 +47,7 @@ def query_qwen(prompt, image_paths):
 
     try:
         completion = client.chat.completions.create(
-            model="qwen-vl-max",  # 使用通义千问 VL Max 模型
+            model="qwen3-vl-plus-2025-12-19",  # 使用通义千问 VL Max 模型
             messages=[
                 {
                     "role": "user",
