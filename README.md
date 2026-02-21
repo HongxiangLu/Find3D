@@ -4,9 +4,11 @@
 
 # 运行前的准备
 
-1. 创建`DATA_ROOT`文件夹，将路径写入[`configs.py`](dataengine/configs.py)
+1. 根据[`requirements.txt`](dataengine/requirements.txt)的内容创建conda环境
 
-2. 准备如下所示的文件结构：
+2. 创建`DATA_ROOT`文件夹，将路径写入[`configs.py`](dataengine/configs.py)
+
+3. 准备如下所示的文件结构：
 
 ```
 DATA_ROOT/
