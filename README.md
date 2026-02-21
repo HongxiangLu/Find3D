@@ -72,3 +72,11 @@ python dataengine/llm/query_orientation.py 1 --total 4
 ```
 
 3. **运行结果**：从同一点云的不同方向渲染图中挑出合适的，统一放在`DATA_ROOT/labeled/rendered/点云名称/oriented`文件夹下。
+
+### 掩码生成脚本（[`dataengine/seg2d/get_sam_masks.py`](dataengine/seg2d/get_sam_masks.py)）
+
+1. 修正了掩码的保存逻辑，移除了 Matplotlib 相关代码，改用 OpenCV ，确保生成的掩码可视化图与原始渲染图分辨率完全一致。
+
+2. 修改了原脚本的数据类型兼容性问题。
+
+3. **运行结果**：在`DATA_ROOT/labeled/rendered/点云名称/oriented`目录下建立`masks`文件夹，为`imgs`目录下的每张图片生成掩码。

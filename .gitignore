@@ -19,6 +19,10 @@ env/
 .vscode/
 # 操作系统文件
 .DS_Store
+# SAM checkpoints
+dataengine/seg2d/sam_vit_h_4b8939.pth
 # 脚本运行日志
 render_exceptions.txt
 orientation_exceptions*.txt
+sam_seg_exceptions.txt
+get_masks_time.txt
