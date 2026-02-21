@@ -55,6 +55,8 @@ object_uid_2,table
 
 3. **工具库修正**：修正了[`dataengine/utils/meshutils.py`](dataengine/utils/meshutils.py)的模块导入错误路径（`from rendering.utils`）。
 
+4. **运行结果**：在`DATAROOT/labeled`目录下创建`rendered`文件夹，存储每个点云在不同方向上渲染的图片。
+
 ### 物体朝向判断脚本（[`dataengine/llm/query_orientation.py`](dataengine/llm/query_orientation.py)）
 
 1. 模型从Gemini迁移至通义千问系列，调用OpenAI兼容接口（Python openai包）。使用前需要通过环境变量配置API Key：`export DASHSCOPE_API_KEY="sk-你的key"`
@@ -68,3 +70,5 @@ python dataengine/llm/query_orientation.py 0 --total 4
 python dataengine/llm/query_orientation.py 1 --total 4
 # ... 以此类推到 3
 ```
+
+3. **运行结果**：从同一点云的不同方向渲染图中挑出合适的，统一放在`DATA_ROOT/labeled/rendered/点云名称/oriented`文件夹下。
