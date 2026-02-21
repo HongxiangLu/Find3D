@@ -2,6 +2,41 @@
 
 本项目克隆自克隆自[`Find3D`](https://ziqi-ma.github.io/find3dsite/)，主要使用[Data Engine](dataengine)的部分构建新的点云-文本多模态数据集。
 
+# 运行前的准备
+
+1. 创建`DATA_ROOT`文件夹，将路径写入[`configs.py`](dataengine/configs.py)
+
+2. 准备如下所示的文件结构：
+
+```
+DATA_ROOT/
+├── labeled/
+│   ├── chunk_ids/
+│   │   └── chunk0.csv              # [必需] 待处理的 UID 列表
+│   └── glbs/                       # [必需] 存放模型文件和路径映射
+│       ├── object-paths.json.gz    # [必需] UID 到文件路径的映射
+│       └── <你的模型文件>            # [必需] 实际的 .glb 或 .ply 文件
+└── obj1lvis/
+    └── metadata.csv                # [必需] UID 到类别的映射
+```
+
+其中`obj1lvis/metadata.csv`和`labeled/chunk_ids/chunk0.csv`都提供了每个对象的类别（class）信息，如下所示：
+
+```
+        uid,class
+        object_uid_1,chair
+        object_uid_2,table
+```
+
+而`labeled/glbs/object-paths.json.gz`是一个压缩的 JSON 文件，记录每个 `uid` 对应的模型文件相对路径（相对于`labeled/glbs/`），如下所示：
+
+```
+        {
+            "object_uid_1": "chair/model_1.glb",
+            "object_uid_2": "table/model_2.ply"
+        }
+```
+
 # 修改内容
 
 由于路径问题，运行脚本前需要先设置路径：`export PYTHONPATH=$PYTHONPATH:.`
