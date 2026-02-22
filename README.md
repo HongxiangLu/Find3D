@@ -4,11 +4,13 @@
 
 # 运行前的准备
 
-1. 根据[`dataengine/requirements.txt`](dataengine/requirements.txt)的内容创建conda环境
+1. 从[这里](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth)下载 SAM 模型的 Checkpoints，并将其存放路径写入 [`dataengine/configs.py`](dataengine/configs.py) 的 `SAM_CHECKPOINT_PATH`。
 
-2. 创建`DATA_ROOT`文件夹，将路径写入[`dataengine/configs.py`](dataengine/configs.py)
+2. 根据[`dataengine/requirements.txt`](dataengine/requirements.txt)的内容创建conda环境
 
-3. 准备如下所示的文件结构：
+3. 创建`DATA_ROOT`文件夹，将路径写入 [`dataengine/configs.py`](dataengine/configs.py) 
+
+4. 准备如下所示的文件结构：
 
 ```
 DATA_ROOT/
@@ -80,3 +82,11 @@ python dataengine/llm/query_orientation.py 1 --total 4
 2. 修改了原脚本的数据类型兼容性问题。
 
 3. **运行结果**：在`DATA_ROOT/labeled/rendered/点云名称/oriented`目录下建立`masks`文件夹，为`imgs`目录下的每张图片生成掩码。
+
+### 部件命名脚本（[`name_single_part.py`](dataengine/llm/name_single_part.py)）
+
+1. 模型从Gemini迁移至通义千问系列，调用OpenAI兼容接口（Python openai包）。使用前需要通过环境变量配置API Key：`export DASHSCOPE_API_KEY="sk-你的key"`
+
+2. 移除了原有的轮询逻辑，仅保留单线程运行版本。
+
+3. **运行结果**：使用多模态大模型（Visual LLM）识别上一部 SAM 分割出的部件名称，在 `DATA_ROOT/labeled/rendered/点云名称/oriented/masks` 路径下保存每份点云所有的掩码文件路径及其对应名称，命名为 `partnames.json`。
