@@ -27,3 +27,4 @@ orientation_exceptions*.txt
 sam_seg_exceptions.txt
 get_masks_time.txt
 name_part_exceptions*.txt
+merge_masks_exceptions.txt

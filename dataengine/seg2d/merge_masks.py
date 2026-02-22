@@ -59,7 +59,7 @@ def merge_masks(obj_dir, file_e):
         partname = mask2parts[labeled_file]
         if "unknown" not in partname:
             maskname = labeled_file.split("/")[1].split(".")[0] # e.g. mask23
-            seg = torch.tensor(torch.load(f"{obj_dir}/masks/{curview}/{maskname}.pt")*1.0)
+            seg = torch.load(f"{obj_dir}/masks/{curview}/{maskname}.pt").float()
             # aggregate the mask
             if partname in view_seg_dict:
                 view_seg_dict[partname] += seg
@@ -94,8 +94,9 @@ def merge_masks(obj_dir, file_e):
 
 
 if __name__ == "__main__":
+    chunk_idx = 0
     parent_folder = f"{DATA_ROOT}/labeled/rendered"
-    cur_df = pd.read_csv(f"{DATA_ROOT}/labeled/chunk_ids/merged3.csv")
+    cur_df = pd.read_csv(f"{DATA_ROOT}/labeled/chunk_ids/chunk{chunk_idx}.csv")
     cur_df["path"] = cur_df["class"] + "_" + cur_df["uid"]
     child_dirs = cur_df["path"].tolist()
     full_dirs = [parent_folder+"/"+child_dir for child_dir in child_dirs]

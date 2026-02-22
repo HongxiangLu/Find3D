@@ -90,3 +90,33 @@ python dataengine/llm/query_orientation.py 1 --total 4
 2. 移除了原有的轮询逻辑，仅保留单线程运行版本。
 
 3. **运行结果**：使用多模态大模型（Visual LLM）识别上一部 SAM 分割出的部件名称，在 `DATA_ROOT/labeled/rendered/点云名称/oriented/masks` 路径下保存每份点云所有的掩码文件路径及其对应名称，命名为 `partnames.json`。
+
+### 整理掩码脚本（[`dataengine/seg2d/merge_masks.py`](dataengine/seg2d/merge_masks.py)）
+
+1. 修正了一些代码错误。
+
+2. **运行结果**：根据大模型识别出的部件名称（如 "rail", "ground"），将同一视角下具有相同名称的掩码合并，并将所有视角、所有部件的掩码统一打包成结构化的 PyTorch 张量文件。
+
+3. **文件结构**：如下所示。其中：
+
+```
+oriented/
+├── masks/
+│   ├── partnames.json
+│   └── merged/
+│       ├── allmasks.pt
+│       ├── mask_labels.txt
+│       └── mask2view.pt
+├── imgs/
+│   ├── 00.jpg
+│   └── ...
+└── pix2face.pt
+```
+
+`pix2face.pt` 记录了 2D 渲染图上的每一个像素对应 3D 网格模型上的哪一个面片，形状为 (10, H, W)，对应 10 个视角。这份数据是之前生成的，后续步骤会利用它把 2D 掩码「反向投影」回 3D 空间。
+
+`allmasks.pt` 是所有掩码的集合，包含该物体所有视角下所有部件的二值掩码。形状为 (N_MASKS, H, W)，其中第 $i$ 个切片对应第 $i$ 个部件的 2D 形状。
+
+`mask2view.pt` 是掩码所属视角索引，形状为 (N_MASKS,)。如果第 $i$ 个元素是 3，说明 allmasks.pt 中的第 $i$ 个掩码属于第 3 个视角（view03）。
+
+`mask_labels.txt` 是掩码对应的部件名称。，为 N_MASKS 行文本。其中第 $i$ 行文本（如 "rail"）是 allmasks.pt 中第 $i$ 个掩码的标签。它与 mask2view.pt 和 allmasks.pt 是一一对应的。
