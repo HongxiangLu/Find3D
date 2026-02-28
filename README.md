@@ -120,3 +120,17 @@ oriented/
 `mask2view.pt` 是掩码所属视角索引，形状为 (N_MASKS,)。如果第 $i$ 个元素是 3，说明 allmasks.pt 中的第 $i$ 个掩码属于第 3 个视角（view03）。
 
 `mask_labels.txt` 是掩码对应的部件名称。，为 N_MASKS 行文本。其中第 $i$ 行文本（如 "rail"）是 allmasks.pt 中第 $i$ 个掩码的标签。它与 mask2view.pt 和 allmasks.pt 是一一对应的。
+
+### 3D表面采样脚本（[dataengine/py3d_customization/sample_points.py](dataengine/py3d_customization/sample_points.py)）
+
+1. 这是个新增脚本，调用了原作者在[dataengine/README.md](dataengine/README.md)中生成修改后的 `sample_points_from_meshes.py` 脚本。
+
+2. **核心功能**：读取 3D 模型（PLY 或 GLB），在模型表面均匀随机地采样指定数量（默认 10000 个）的 3D 点。脚本不仅获取这些点的空间坐标，还记录了每个点具体落在了模型的哪一个三角面片（Face）上。
+
+3. **运行结果**：对于每个处理的物体（UID），脚本会在 DATA_ROOT/labeled/points/{classname}_{uid}/ 目录下生成两个 PyTorch Tensor 文件：
+
+其一是 `points.pt`，记录了采样点的 3D 坐标 (x, y, z)，形状为 (N_SAMPLES, 3)，例如 (10000, 3)。这是点云本身的数据，后续用于训练 Point Cloud 模型或进行对比学习。
+
+其二是 `point2face.pt`，记录了每个采样点所属的网格面索引（Face Index），形状为 (N_SAMPLES,)，例如 (10000,)。这是一个关键的索引映射。它告诉后续程序：“第 5 个采样点位于模型的第 1024 号面片上”。
+
+4. 另外，原作者修改过的 [sample_points_from_meshes.py](dataengine/py3d_customization/sample_points_from_meshes.py) 没有导入必要的库。这里修补了这一点。

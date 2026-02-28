@@ -1,6 +1,17 @@
 # this file is sourced from pytorch3d repo
 # https://github.com/facebookresearch/pytorch3d/blob/81d82980bc82fd605f27cca87f89ba08af94db3d/pytorch3d/ops/sample_points_from_meshes.py#L25
 
+import sys
+import torch
+from typing import Tuple, Union
+from pytorch3d.ops.mesh_face_areas_normals import mesh_face_areas_normals
+from pytorch3d.ops import packed_to_padded
+from pytorch3d.renderer.mesh.rasterizer import Fragments as MeshFragments
+
+# 下面是私有函数，通常不建议直接导入，但由于这是源码拷贝，我们需要把它们也补上
+# 或者可以把 _rand_barycentric_coords 的实现也拷贝进来
+from pytorch3d.ops.sample_points_from_meshes import _rand_barycentric_coords
+
 def sample_points_from_meshes(
     meshes,
     num_samples: int = 10000,
