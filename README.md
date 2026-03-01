@@ -134,3 +134,25 @@ oriented/
 其二是 `point2face.pt`，记录了每个采样点所属的网格面索引（Face Index），形状为 (N_SAMPLES,)，例如 (10000,)。这是一个关键的索引映射。它告诉后续程序：“第 5 个采样点位于模型的第 1024 号面片上”。
 
 4. 另外，原作者修改过的 [sample_points_from_meshes.py](dataengine/py3d_customization/sample_points_from_meshes.py) 没有导入必要的库。这里修补了这一点。
+
+5. 这个脚本是为 `label_mask2pt.py` 做准备，将 2D 图片上的分割掩码反向投影到 3D 空间中。
+
+这个脚本产生的 `point2face.pt` 指出「某个 3D 点位于 Face X」，建立了点到面的映射；而之前 `merge_masks.py` 产生的 `pix2face.pt` 指出「某个 2D 像素对应 Face X」，建立了像素到面的映射。
+
+如果 2D 像素和 3D 点都指向同一个 Face X，那么这个 3D 点就应该被标记为该 2D 掩码的类别。
+
+### 掩码点云对应关系脚本（[dataengine/label3d/label_mask2pt.py](dataengine/label3d/label_mask2pt.py)）
+
+1. **主要功能**：建立 2D 掩码（Mask）与 3D 点云（Points）之间的对应关系。在之前的步骤中，我们已经有了：
+
+2D 语义：图像上的像素被标记为某个部件，存储在 `{DATA_ROOT}/labeled/rendered/{点云名称}/oriented/masks/merged/allmasks.pt` 中。
+
+3D 几何：物体表面的 3D 采样点，存储在 `{DATA_ROOT}/labeled/points/{点云名称}/points.pt` 中。
+
+几何映射：像素到网格面的映射 (`pix2face.pt`) 和 点到网格面的映射 (`point2face.pt`)。
+
+这一脚本利用网格面（Face）作为中间桥梁，将 2D 像素 和 3D 点 关联起来。如果一个 2D 掩码覆盖了某个像素，且该像素对应的网格面上采样了某个 3D 点，那么这个 3D 点就被打上该掩码的标签。
+
+2. **产出内容**：在 `DATA_ROOT/labeled/rendered/{点云名称}/oriented/masks/merged/` 目录下生成 `mask2points.pt`，形状为 (N_MASKS, N_POINTS)。这个张量的行索引 i 对应第 i 个掩码（即 allmasks.pt 中的第 $i$ 个掩码，以及 mask_labels.txt 中的第 $i$ 行标签）；列索引 j 对应第 j 个 3D 采样点（即 points.pt 中的第 $j$ 个点）。值 1 表示第 j 个点属于第 i 个掩码（即该点属于这个部件）。值 0 表示不属于。
+
+3. 修改了脚本中的错误，主要是 `label_mask2pt()` 和 `visualize_mask_pts()` 的第二个参数，应为主函数中的 `nameuid`而非 `nameuid`。

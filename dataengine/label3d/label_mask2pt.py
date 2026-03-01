@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from dataengine.configs import DATA_ROOT
 
-def label_mask2pt(obj_dir, uid):
+def label_mask2pt(obj_dir, nameuid):
     # root_dir is e.g. [name]_uid/norotate
     if not os.path.exists(f"{obj_dir}/masks/merged"): # if no mask, skip
         return
@@ -25,7 +25,7 @@ def label_mask2pt(obj_dir, uid):
         pass
     # get per mask points
     pix2frontface = torch.load(osp.join(obj_dir, "pix2face.pt")).cuda() # pix2frontface is n_view, h, w and the value is face index
-    point2face = torch.load(f"{DATA_ROOT}/labeled/points/{uid}/point2face.pt").cuda() # point2face is of size 5000, each a face index for the point
+    point2face = torch.load(f"{DATA_ROOT}/labeled/points/{nameuid}/point2face.pt").cuda() # point2face is of size 5000, each a face index for the point
     all_masks = torch.load(f"{obj_dir}/masks/merged/allmasks.pt").cuda()
     all_masks = all_masks.view(all_masks.shape[0],-1).type(torch.cuda.FloatTensor)
     mask2view = torch.load(f"{obj_dir}/masks/merged/mask2view.pt").cuda()
@@ -63,13 +63,13 @@ def label_mask2pt(obj_dir, uid):
     torch.save(mask2pt, f"{obj_dir}/masks/merged/mask2points.pt")
 
 # for debugging
-def visualize_mask_pts(obj_dir, uid):
+def visualize_mask_pts(obj_dir, nameuid):
     mask2points = torch.load(f"{obj_dir}/masks/merged/mask2points.pt")
     allmasks = torch.load(f"{obj_dir}/masks/merged/allmasks.pt")
     f = open(f"{obj_dir}/masks/merged/mask_labels.txt", "r")
     labels = f.read().splitlines()
     f.close()
-    pt_xyz = torch.load(f"{DATA_ROOT}/labeled/points/{uid}/points.pt")
+    pt_xyz = torch.load(f"{DATA_ROOT}/labeled/points/{nameuid}/points.pt")
 
     rand_indices = [10,13,36]
 
@@ -100,8 +100,8 @@ if __name__ == "__main__":
     start = time.time()
     for nameuid in tqdm(child_dirs):
         full_dir = parent_folder+"/"+nameuid
-        uid = nameuid.split("_")[-1]
-        label_mask2pt(f"{full_dir}/oriented", uid)
+        # uid = nameuid.split("_")[-1]
+        label_mask2pt(f"{full_dir}/oriented", nameuid)
         # visualize for debugging
         # visualize_mask_pts(f"{full_dir}/oriented", uid)
     end = time.time()
