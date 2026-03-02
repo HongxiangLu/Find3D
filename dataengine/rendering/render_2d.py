@@ -171,6 +171,6 @@ def render_k_views(uid_list, num_views, data_root):
 
 
 if __name__ == "__main__":
-    chunk_idx = 0
+    chunk_idx = 2
     uids = pd.read_csv(f"{DATA_ROOT}/labeled/chunk_ids/chunk{chunk_idx}.csv")["uid"].tolist()
     render_k_views(uids, 10, DATA_ROOT)

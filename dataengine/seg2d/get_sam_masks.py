@@ -96,7 +96,7 @@ def get_masks_dirs(dir_list):
 
 
 if __name__ == "__main__":
-    chunk_idx = 0
+    chunk_idx = 2
     # generate masks
     parent_folder = f"{DATA_ROOT}/labeled/rendered"
     cur_df = pd.read_csv(f"{DATA_ROOT}/labeled/chunk_ids/chunk{chunk_idx}.csv")

@@ -94,7 +94,7 @@ def merge_masks(obj_dir, file_e):
 
 
 if __name__ == "__main__":
-    chunk_idx = 0
+    chunk_idx = 1
     parent_folder = f"{DATA_ROOT}/labeled/rendered"
     cur_df = pd.read_csv(f"{DATA_ROOT}/labeled/chunk_ids/chunk{chunk_idx}.csv")
     cur_df["path"] = cur_df["class"] + "_" + cur_df["uid"]

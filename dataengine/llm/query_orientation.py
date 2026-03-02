@@ -47,7 +47,7 @@ def query_qwen(prompt, image_paths):
 
     try:
         completion = client.chat.completions.create(
-            model="qwen3-vl-plus-2025-12-19",  # 使用通义千问 VL Max 模型
+            model="qwen-vl-max-2025-08-13",  # 使用通义千问模型
             messages=[
                 {
                     "role": "user",
@@ -141,7 +141,7 @@ def query_uid(root_dir):
 
 def process_endpoint(endpoint_idx, total_endpoints):
     parent_folder = f"{DATA_ROOT}/labeled/rendered"
-    chunk_idx = 0 # 对应 render_2d.py 中的 chunk_idx
+    chunk_idx = 2 # 对应 render_2d.py 中的 chunk_idx
     
     chunk_file = f"{DATA_ROOT}/labeled/chunk_ids/chunk{chunk_idx}.csv"
     if not os.path.exists(chunk_file):

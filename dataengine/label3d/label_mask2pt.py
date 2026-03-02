@@ -35,29 +35,50 @@ def label_mask2pt(obj_dir, nameuid):
     # for each view, for now we don't parallelize since io needs to be sequential anyway
     # all the labels are in order from view0 to view10
     # so by concatenating by filtered view idx in order we preserve the original order
+    
+    # [优化] 设置分批大小，例如每次处理 1000 个点
+    BATCH_SIZE = 1000 
+    n_points = point2face.shape[0]
+
     for i in range(n_views):
-        # for each pixel, if the face index is in the point, write point_feats[idx, i, :] with the feature
-        pix2face = pix2frontface[i,:,:].view(-1) 
-        # get flattened point idx->pix matrix
-        # this is n_pts * n_pixels like below 
-        # [0 0 1 ... 1 1 0 0 ... 1] each 1 is the pixels that show the same face as this point (0'th point)
-        # [0 0 0  1 ...0 1 ... 0 0] each 1 is the pixels that show the same face as this point (1st point)
-        # ...
-        # faces with no corresponding points are ignored
-        # points with no corresponding faces seem in this view is all 0
-        point2pix = ((pix2face - point2face.unsqueeze(0).T) == 0) * 1.0 # n_pts, (h*w)
-        pix2point = point2pix.T # (h*w),n_pts
-        # for each mask in this view
-        masks_this_view = all_masks[mask2view==i,:] # k,(h*w)
-        # [0 0 1 1 .. 1 0 0 0]
-        # [0 1 0 0 .. 1 0 0 0] pixels chosen for this mask
-        # right now there is no weighting, e.g. if a mask covers 2 faces 1 super large 1 super small
-        # we are taking all points on the large face and small face and eventually averaging them
-        # later we could also add a weighting, i.e. inverse to the number of points sampled for each pixel
-        # this will downweigh the points on the large face and upweigh the points  on the small face
-        masks_pts = masks_this_view @ pix2point # k, n_pts, all pixels for this mask' corresponding pts > 0
-        masks_pts_binary = (masks_pts>0)*1 # k, n_pts
-        mask2pt_list.append(masks_pts_binary)
+        pix2face = pix2frontface[i,:,:].view(-1)  # (H*W,)
+        masks_this_view = all_masks[mask2view==i,:] # (K, H*W)
+        
+        # 如果这个视角没有 mask，直接给全 0
+        if masks_this_view.shape[0] == 0:
+            mask2pt_list.append(torch.zeros(0, n_points).cuda())
+            continue
+
+        # 结果容器：(K, N_PTS)
+        view_mask2pt = torch.zeros(masks_this_view.shape[0], n_points, device='cuda')
+
+        # === 分批处理点 (Points Batching) ===
+        for start_idx in range(0, n_points, BATCH_SIZE):
+            end_idx = min(start_idx + BATCH_SIZE, n_points)
+            
+            # 取出一批点对应的面索引: (Batch,)
+            batch_point2face = point2face[start_idx:end_idx]
+            
+            # 计算这一批点的 point2pix: (Batch, H*W)
+            # 广播操作只在这个小 Batch 上进行，显存占用降为原来的 1/10 (如果Batch=1000)
+            batch_point2pix = ((pix2face - batch_point2face.unsqueeze(1)) == 0).float()
+            
+            # 矩阵乘法: (K, H*W) @ (H*W, Batch) -> (K, Batch)
+            # 注意：这里 batch_point2pix 是 (Batch, H*W)，需要转置
+            batch_masks_pts = masks_this_view @ batch_point2pix.T
+            
+            # 存入结果
+            view_mask2pt[:, start_idx:end_idx] = (batch_masks_pts > 0).float()
+            
+            # 及时释放中间显存
+            del batch_point2pix
+            del batch_masks_pts
+        
+        mask2pt_list.append(view_mask2pt)
+        
+        # 清理视角级显存
+        del pix2face
+        del masks_this_view
     
     mask2pt = torch.cat(mask2pt_list, dim=0) # this should be n_masks, n_pts
     torch.save(mask2pt, f"{obj_dir}/masks/merged/mask2points.pt")
@@ -90,7 +111,7 @@ def visualize_mask_pts(obj_dir, nameuid):
 
 
 if __name__ == "__main__":
-    chunk_id = 0 # change this to process all chunks
+    chunk_id = 1 # change this to process all chunks
 
     parent_folder = f"{DATA_ROOT}/labeled/rendered"
     cur_df = pd.read_csv(f"{DATA_ROOT}/labeled/chunk_ids/chunk{chunk_id}.csv")

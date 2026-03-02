@@ -9,7 +9,7 @@ import copy
 
 # 配置路径 (根据你的目录结构调整)
 DATA_ROOT = "dataroot"  # 假设在 Find3D-new 下运行
-CHUNK_ID = 0
+CHUNK_ID = 3
 CHUNK_FILE = f"{DATA_ROOT}/labeled/chunk_ids/chunk{CHUNK_ID}.csv"
 PATHS_FILE = f"{DATA_ROOT}/labeled/glbs/object-paths.json.gz"
 GLB_ROOT = f"{DATA_ROOT}/labeled/glbs"

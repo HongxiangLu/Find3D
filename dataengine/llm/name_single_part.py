@@ -29,7 +29,7 @@ def query_qwen(prompt, image_path):
 
     try:
         completion = client.chat.completions.create(
-            model="qwen3-vl-plus-2025-12-19",
+            model="qwen-vl-max-2025-08-13",
             messages=[
                 {
                     "role": "user",
@@ -131,7 +131,7 @@ def query_object(obj_dir, exception_file):
     return
 
 def run_endpoint_load(endpoint_idx, total_endpoints):
-    chunk_idx = 0
+    chunk_idx = 1
     parent_folder = f"{DATA_ROOT}/labeled/rendered"
     
     chunk_file = f"{DATA_ROOT}/labeled/chunk_ids/chunk{chunk_idx}.csv"

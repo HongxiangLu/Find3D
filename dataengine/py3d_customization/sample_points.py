@@ -76,13 +76,23 @@ def process_mesh_sampling(chunk_idx=0, num_samples=10000):
                 mesh = ply_to_py3d(full_path).cuda()
             else:
                 mesh = glb_to_py3d(full_path).cuda()
+
+            # [新增] 动态计算采样数
+            # 获取网格顶点数
+            mesh_verts_count = mesh.verts_packed().shape[0]
+            # 策略：采样数 = max(10000, 网格顶点数)
+            # 这样既保证了简单物体至少有 10k 点，又保证了复杂物体有足够多的点
+            dynamic_num_samples = max(num_samples, mesh_verts_count) 
+            # 或者更激进一点：采样数 = 网格面数 (通常是顶点的2倍)
+            # dynamic_num_samples = mesh.faces_packed().shape[0]
+            print(f"UID {uid}: Mesh has {mesh_verts_count} verts. Sampling {dynamic_num_samples} points.")
             
             # 3. 采样点
             # sample_points_from_meshes 返回 (samples, normals, textures, mappers)
             # 我们只需要 samples 和 mappers (即 point2face)
             samples, normals, textures, point2face = sample_points_from_meshes(
                 mesh, 
-                num_samples=num_samples, 
+                num_samples=dynamic_num_samples,    # 使用动态数量 
                 return_normals=True, 
                 return_textures=True
             )
@@ -99,4 +109,4 @@ def process_mesh_sampling(chunk_idx=0, num_samples=10000):
 if __name__ == "__main__":
     # 需要先安装 pytorch3d
     # 确保 dataengine 在 PYTHONPATH 中
-    process_mesh_sampling()
+    process_mesh_sampling(1)

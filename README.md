@@ -155,4 +155,4 @@ oriented/
 
 2. **产出内容**：在 `DATA_ROOT/labeled/rendered/{点云名称}/oriented/masks/merged/` 目录下生成 `mask2points.pt`，形状为 (N_MASKS, N_POINTS)。这个张量的行索引 i 对应第 i 个掩码（即 allmasks.pt 中的第 $i$ 个掩码，以及 mask_labels.txt 中的第 $i$ 行标签）；列索引 j 对应第 j 个 3D 采样点（即 points.pt 中的第 $j$ 个点）。值 1 表示第 j 个点属于第 i 个掩码（即该点属于这个部件）。值 0 表示不属于。
 
-3. 修改了脚本中的错误，主要是 `label_mask2pt()` 和 `visualize_mask_pts()` 的第二个参数，应为主函数中的 `nameuid`而非 `nameuid`。
+3. 修改了脚本中的错误，主要是 `label_mask2pt()` 和 `visualize_mask_pts()` 的第二个参数，应为主函数中的 `nameuid`而非 `nameuid`。另外，脚本会进行巨大的张量操作；为了优化显存使用（现有条件为 12GB 显存），将脚本中的 `point2pix` 进行分批切块计算。
