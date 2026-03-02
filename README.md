@@ -141,6 +141,8 @@ oriented/
 
 如果 2D 像素和 3D 点都指向同一个 Face X，那么这个 3D 点就应该被标记为该 2D 掩码的类别。
 
+6. **这个脚本后续又经过了修改。内容待补充。**
+
 ### 掩码点云对应关系脚本（[dataengine/label3d/label_mask2pt.py](dataengine/label3d/label_mask2pt.py)）
 
 1. **主要功能**：建立 2D 掩码（Mask）与 3D 点云（Points）之间的对应关系。在之前的步骤中，我们已经有了：
