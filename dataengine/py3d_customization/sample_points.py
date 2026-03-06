@@ -16,6 +16,18 @@ from dataengine.configs import DATA_ROOT
 import trimesh
 from pytorch3d.renderer import TexturesVertex
 
+def _compute_norm_params_from_verts(verts: torch.Tensor):
+    """
+    与 dataengine.utils.meshutils.normalize_mesh 完全一致的参数：
+    x' = (x - center) / scale
+    """
+    center = verts.mean(0)
+    scale = (verts - center).abs().max(0)[0].max()
+    scale = float(scale)
+    if scale == 0:
+        scale = 1.0
+    return center, scale
+
 def ply_to_py3d(path):
     mesh_t = trimesh.load(path, force='mesh')
     if isinstance(mesh_t, trimesh.Scene):
@@ -24,11 +36,15 @@ def ply_to_py3d(path):
         mesh_t = trimesh.util.concatenate(tuple(mesh_t.geometry.values()))
     verts = torch.from_numpy(mesh_t.vertices).float()
     faces = torch.from_numpy(mesh_t.faces).long()
-    colors = torch.ones_like(verts) * 0.8 # 颜色在这里不重要
+
+    # 记录 normalize 参数（与 normalize_mesh 保持一致）
+    center, scale = _compute_norm_params_from_verts(verts)
+
+    colors = torch.ones_like(verts) * 0.8
     textures = TexturesVertex(verts_features=[colors])
     mesh = Meshes(verts=[verts], faces=[faces], textures=textures)
     normalize_mesh(mesh)
-    return mesh
+    return mesh, center, scale
 
 def process_mesh_sampling(chunk_idx=0, num_samples=10000):
     # 路径设置
@@ -52,9 +68,14 @@ def process_mesh_sampling(chunk_idx=0, num_samples=10000):
     print(f"Sampling points for {len(uids)} objects...")
     for uid, classname in tqdm(zip(uids, classes)):
         try:
-            # 1. 检查是否已处理
             save_dir = f"{out_root}/{classname}_{uid}"
-            if os.path.exists(f"{save_dir}/points.pt") and os.path.exists(f"{save_dir}/point2face.pt"):
+            norm_meta_path = f"{save_dir}/norm_transform.json"
+
+            if (
+                os.path.exists(f"{save_dir}/points.pt")
+                and os.path.exists(f"{save_dir}/point2face.pt")
+                and os.path.exists(norm_meta_path)
+            ):
                 continue
                 
             os.makedirs(save_dir, exist_ok=True)
@@ -73,9 +94,13 @@ def process_mesh_sampling(chunk_idx=0, num_samples=10000):
 
             # 加载并放到 GPU
             if full_path.lower().endswith('.ply'):
-                mesh = ply_to_py3d(full_path).cuda()
+                mesh, norm_center, norm_scale = ply_to_py3d(full_path)
+                mesh = mesh.cuda()
             else:
                 mesh = glb_to_py3d(full_path).cuda()
+                # glb 暂时不给迁移脚本使用；若你全是 ply，这里不会走到
+                norm_center = torch.zeros(3)
+                norm_scale = 1.0
 
             # [新增] 动态计算采样数
             # 获取网格顶点数
@@ -102,11 +127,18 @@ def process_mesh_sampling(chunk_idx=0, num_samples=10000):
             # point2face 形状 (1, N) -> squeeze -> (N,)
             torch.save(samples.squeeze().cpu(), f"{save_dir}/points.pt")
             torch.save(point2face.squeeze().cpu(), f"{save_dir}/point2face.pt")
-            
+            norm_meta = {
+                "center": [float(x) for x in norm_center.cpu().tolist()],
+                "scale": float(norm_scale),
+                "formula": "x_norm = (x - center) / scale"
+            }
+            with open(norm_meta_path, "w", encoding="utf-8") as f:
+                json.dump(norm_meta, f, ensure_ascii=False, indent=2)
+
         except Exception as e:
             print(f"Failed on {uid}: {e}")
 
 if __name__ == "__main__":
     # 需要先安装 pytorch3d
     # 确保 dataengine 在 PYTHONPATH 中
-    process_mesh_sampling(1)
+    process_mesh_sampling(0)

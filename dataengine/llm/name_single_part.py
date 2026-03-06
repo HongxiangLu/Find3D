@@ -29,7 +29,7 @@ def query_qwen(prompt, image_path):
 
     try:
         completion = client.chat.completions.create(
-            model="qwen-vl-max-2025-08-13",
+            model="qwen-vl-max-latest",
             messages=[
                 {
                     "role": "user",

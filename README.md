@@ -133,6 +133,8 @@ oriented/
 
 其二是 `point2face.pt`，记录了每个采样点所属的网格面索引（Face Index），形状为 (N_SAMPLES,)，例如 (10000,)。这是一个关键的索引映射。它告诉后续程序：“第 5 个采样点位于模型的第 1024 号面片上”。
 
+其三是 `norm_transform.json`，保存脚本中用到的 `normalize_mesh` 变换参数。原因是 `points.pt` 保存标准化坐标，而项目的最后一项脚本（点云文本对应关系产出脚本）针对原始点云的原始坐标。如果两者不在同一坐标系，标签迁移会不准。
+
 4. 另外，原作者修改过的 [sample_points_from_meshes.py](dataengine/py3d_customization/sample_points_from_meshes.py) 没有导入必要的库。这里修补了这一点。
 
 5. 这个脚本是为 `label_mask2pt.py` 做准备，将 2D 图片上的分割掩码反向投影到 3D 空间中。
@@ -158,3 +160,29 @@ oriented/
 2. **产出内容**：在 `DATA_ROOT/labeled/rendered/{点云名称}/oriented/masks/merged/` 目录下生成 `mask2points.pt`，形状为 (N_MASKS, N_POINTS)。这个张量的行索引 i 对应第 i 个掩码（即 allmasks.pt 中的第 $i$ 个掩码，以及 mask_labels.txt 中的第 $i$ 行标签）；列索引 j 对应第 j 个 3D 采样点（即 points.pt 中的第 $j$ 个点）。值 1 表示第 j 个点属于第 i 个掩码（即该点属于这个部件）。值 0 表示不属于。
 
 3. 修改了脚本中的错误，主要是 `label_mask2pt()` 和 `visualize_mask_pts()` 的第二个参数，应为主函数中的 `nameuid`而非 `nameuid`。另外，脚本会进行巨大的张量操作；为了优化显存使用（现有条件为 12GB 显存），将脚本中的 `point2pix` 进行分批切块计算。
+
+### 点云文本对应关系产出脚本（[transfer_raw_labels.py](transfer_raw_labels.py)
+
+1. **核心功能**：把 Data Engine 已经得到的「采样点语义标签」迁移到原始点云，从而得到「原始点—文本标签」的对应关系。
+
+2. **核心思路**：（1）读取已生成的中间结果 `mask2points.pt`，`mask_labels.txt` 和 `points.pt`；（2）在采样点上聚合每个点的标签分数（可理解为每个点对各标签的概率/权重）；（3）加载原始 PLY 点云，用 KDTree 做最近邻（`k=1` 或 `k>1` 加权）把采样点标签迁移到原始点；（4）输出每个原始点的 top1 文本标签、置信度和完整标签分数向量。
+
+3. **准备内容**：在 `DATA_ROOT` 下新建 `raw` 文件夹，结构如下所示：
+
+```
+raw/
+├── raw_pcd/                # 存放原始点云
+│   └── {点云class}/
+│       ├── {点云uid}.ply
+│       └── ...
+└── raw_point_labels/       # 存放运行脚本的产出
+```
+
+4. **输出结果**：脚本会在 `DATA_ROOT/raw/raw_point_labels` 下为每个原始点云创建文件夹，存放如下结果：
+ - raw_points.npy：原始点云坐标（保持原始坐标系）
+ - raw_point_top1_label_id.npy：每个点的 top1 标签 id
+ - raw_point_top1_label.txt：每个点的 top1 文本标签（逐行）
+ - raw_point_top1_conf.npy：top1 置信度
+ - raw_point_label_scores.npy：每个点对所有标签的分数矩阵 (N_raw_points, N_labels)
+ - label_vocab.txt：标签词表（id -> 文本）
+ - meta.json：统计信息（点数、mask 数、标签数、k 邻居等）
